@@ -1,0 +1,21 @@
+{
+  "name": "webext-hit-the-cache",
+  "version": "0.0.0",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [],
+      "run_at": "document_start"
+    }
+  ],
+  "manifest_version": 2,
+  "background": {
+    "scripts": []
+  },
+  "browser_action": {
+    "default_title": "Test"
+  },
+  "permissions": [
+    "<all_urls>"
+  ]
+}
