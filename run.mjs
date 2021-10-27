@@ -64,6 +64,13 @@ if (options.target === 'firefox-desktop-no-partition') {
   };
 }
 
+if (options.target === 'chromium-no-partition') {
+  options.target = 'chromium';
+  options.args = [
+    '--disable-features=SplitCacheByNetworkIsolationKey'
+  ]
+}
+
 if (options.target === "firefox-desktop") {
   options.firefox = process.argv[3];
 } else {

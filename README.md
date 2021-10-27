@@ -47,7 +47,7 @@ Result
 * Only page requests failed.
 * No requests hit the cache.
 
-### Firefox Developer Edition 94.0b9 (no partition):
+### Firefox Developer Edition 94.0b9 (no partition)
 
 | Case                      | Hit the server | Success | File size |
 | ------------------------- | -------------- | ------- | --------- |
@@ -104,6 +104,27 @@ Result
 * Only background requests succeeded.
 * Content requests failed and no-cors fetch got an opaque response.
 * No requests hit the cache.
+* Chrome doesn't support setting referrer in downloads API.
+
+### Chrome 95.0.4638.54 (no partition)
+
+| Case                      | Hit the server | Success | File size |
+| ------------------------- | -------------- | ------- | --------- |
+| backgroundFetch           | 1              | true    | /564      |
+| backgroundFetchNoCors     | 1              | true    | /564      |
+| backgroundXHR             | 1              | true    | /564      |
+| backgroundDownload        | 2              | true    | /564      |
+| backgroundDownloadWithRef | 1              | false   |           |
+| contentFetch              | 1              | false   |           |
+| contentFetchNoCors        | 1              | true    | /0        |
+| contentXHR                | 1              | false   |           |
+| pageFetch                 | 1              | false   |           |
+| pageFetchNoCors           | 1              | false   |           |
+| pageXHR                   | 1              | false   |           |
+
+* Only background requests succeeded.
+* Content requests failed and no-cors fetch got an opaque response.
+* All requests except download API hit the cache.
 * Chrome doesn't support setting referrer in downloads API.
 
 ### Chrome 83.0.4103.116
