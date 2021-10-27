@@ -1,3 +1,4 @@
+import dns from 'dns';
 import {createServer} from "http";
 import {createReadStream} from "fs";
 import { dirname } from 'path';
@@ -5,8 +6,11 @@ import { fileURLToPath } from 'url';
 import * as path from "path";
 
 import readline from "readline-promise";
+import {markdownTable} from 'markdown-table';
 
 import webext from "web-ext";
+
+dns.setDefaultResultOrder('ipv4first');
 
 const rl = readline.default.createInterface({
   input: process.stdin,
@@ -21,12 +25,8 @@ const htmlServer = createServer((req, res) => {
   if (match) {
     res.setHeader("Content-Type", "text/html");
     res.end(`<img src='http://localhost:8081/${match[1]}/test.png'>`);
-    records.push({
-      key: match[1], 
-      type: match[2]
-    });
-    // console.log(records);
   }
+  records.push(getRecord(req.url));
 });
 htmlServer.listen(8080);
 
@@ -45,11 +45,7 @@ const imgServer = createServer((req, res) => {
     } else {
       res.end();
     }
-    records.push({
-      key: match[1], 
-      type: match[2]
-    });
-    // console.log(records);
+    records.push(getRecord(req.url));
   }
 });
 imgServer.listen(8081);
@@ -58,8 +54,15 @@ const options = {
   sourceDir: path.resolve("dist-extension"),
   target: process.argv[2],
   noInput: true,
-  noReload: true
+  noReload: true,
 };
+
+if (options.target === 'firefox-desktop-no-partition') {
+  options.target = 'firefox-desktop';
+  options.pref =   {
+    'privacy.partition.network_state': false
+  };
+}
 
 if (options.target === "firefox-desktop") {
   options.firefox = process.argv[3];
@@ -77,10 +80,56 @@ await runner.exit();
 
 // console.log(records);
 
+// analyze records
+const cases = new Map;
+for (const r of records) {
+  if (!r) continue;
+  if (!cases.has(r.case)) {
+    cases.set(r.case, {
+      hit: 0,
+      success: false,
+      extra: ''
+    });
+  }
+  const o = cases.get(r.case);
+  if (r.filename === 'test.png') {
+    o.hit++;
+  }
+  if (r.filename === 'test.success') {
+    o.success = true;
+    o.extra = r.extra;
+  }
+}
+
+const rows = [
+  ['Case', 'Hit the server', 'Success', 'File size']
+];
+for (const [case_, o] of cases.entries()) {
+  rows.push([
+    case_,
+    o.hit,
+    o.success,
+    o.extra
+  ]);
+}
+console.log(markdownTable(rows));
+
 htmlServer.close();
 imgServer.close();
 rl.close();
 
 function getDirname(url) {
   return dirname(fileURLToPath(url));
+}
+
+function getRecord(url) {
+  const match = url.match(/^\/(\w+)\/([^/]+)(.*)/);
+  if (!match) {
+    return null;
+  }
+  return {
+    case: match[1],
+    filename: match[2],
+    extra: match[3]
+  };
 }

@@ -13,194 +13,115 @@ Run the test
    ```
    node run.mjs firefox-desktop <path_to_executable>
    ```
+   or
+   ```
+   node run.mjs firefox-desktop-no-partition <path_to_executable>
+   ```
    or 
    ```
    node run.mjs chromium <path_to_executable>
    ```
 5. The extension will test `fetch`/`XMLHttpRequest` in different contexts.
 6. When the test ends i.e. the extension stops creating tabs, close the browser.
-7. Go back to the terminal and press enter to continue.
-8. You will get a list of requests the server received.
-
-   * If there is a `.success` request then the extension had fetched the image successfully. The number is the size of the blob.
-   * If there are two `.png` requests then the extension didn't hit the cache.
+7. Go back to the terminal and press enter to continue. (There is [a bug](https://github.com/mozilla/web-ext/issues/1569) preventing Firefox from closing, you may have to close it manually.)
 
 Result
 -------
 
-### Firefox Developer Edition 86.0b9:
+### Firefox Developer Edition 94.0b9:
 
-<details>
-
-```
-GET /backgroundFetch/test.html
-GET /backgroundFetch/test.png
-GET /favicon.ico
-GET /backgroundFetch/test.png
-GET /backgroundFetch/test.success/564
-GET /backgroundFetchNoCors/test.html
-GET /backgroundFetchNoCors/test.png
-GET /favicon.ico
-GET /backgroundFetchNoCors/test.png
-GET /backgroundFetchNoCors/test.success/564
-GET /backgroundXHR/test.html
-GET /backgroundXHR/test.png
-GET /favicon.ico
-GET /backgroundXHR/test.png
-GET /backgroundXHR/test.success/564
-GET /contentFetch/test.html
-GET /contentFetch/test.png
-GET /favicon.ico
-GET /contentFetch/test.png
-GET /contentFetch/test.success/564
-GET /contentFetchNoCors/test.html
-GET /contentFetchNoCors/test.png
-GET /favicon.ico
-GET /contentFetchNoCors/test.png
-GET /contentFetchNoCors/test.success/564
-GET /contentXHR/test.html
-GET /contentXHR/test.png
-GET /favicon.ico
-GET /contentXHR/test.png
-GET /contentXHR/test.success/564
-GET /pageFetch/test.html
-GET /pageFetch/test.png
-GET /favicon.ico
-GET /pageFetch/test.png
-GET /pageFetchNoCors/test.html
-GET /pageFetchNoCors/test.png
-GET /favicon.ico
-GET /pageFetchNoCors/test.png
-GET /pageFetchNoCors/test.success/0
-GET /pageXHR/test.html
-GET /pageXHR/test.png
-GET /favicon.ico
-GET /pageXHR/test.png
-```
-</details>
+| Case                      | Hit the server | Success | File size |
+| ------------------------- | -------------- | ------- | --------- |
+| backgroundFetch           | 2              | true    | /564      |
+| backgroundFetchNoCors     | 2              | true    | /564      |
+| backgroundXHR             | 2              | true    | /564      |
+| backgroundDownload        | 2              | true    | /564      |
+| backgroundDownloadWithRef | 2              | true    | /564      |
+| contentFetch              | 2              | true    | /564      |
+| contentFetchNoCors        | 2              | true    | /564      |
+| contentXHR                | 2              | true    | /564      |
+| pageFetch                 | 2              | false   |           |
+| pageFetchNoCors           | 2              | true    | /0        |
+| pageXHR                   | 2              | false   |           |
 
 * Only page requests failed.
 * No requests hit the cache.
 
-### Firefox ESR 78.7.1
+### Firefox Developer Edition 94.0b9 (no partition):
 
-<details>
+| Case                      | Hit the server | Success | File size |
+| ------------------------- | -------------- | ------- | --------- |
+| backgroundFetch           | 1              | true    | /564      |
+| backgroundFetchNoCors     | 1              | true    | /564      |
+| backgroundXHR             | 1              | true    | /564      |
+| backgroundDownload        | 1              | true    | /564      |
+| backgroundDownloadWithRef | 1              | true    | /564      |
+| contentFetch              | 1              | true    | /564      |
+| contentFetchNoCors        | 1              | true    | /564      |
+| contentXHR                | 1              | true    | /564      |
+| pageFetch                 | 2              | false   |           |
+| pageFetchNoCors           | 2              | true    | /0        |
+| pageXHR                   | 2              | false   |           |
 
-```
-GET /backgroundFetch/test.html
-GET /backgroundFetch/test.png
-GET /favicon.icon
-GET /backgroundFetch/test.success/564
-GET /backgroundFetchNoCors/test.html
-GET /backgroundFetchNoCors/test.png
-GET /favicon.ico
-GET /backgroundFetchNoCors/test.success/564
-GET /backgroundXHR/test.html
-GET /backgroundXHR/test.png
-GET /favicon.ico
-GET /backgroundXHR/test.success/564
-GET /contentFetch/test.html
-GET /contentFetch/test.png
-GET /favicon.ico
-GET /contentFetch/test.success/564
-GET /contentFetchNoCors/test.html
-GET /contentFetchNoCors/test.png
-GET /favicon.ico
-GET /contentFetchNoCors/test.success/564
-GET /contentXHR/test.html
-GET /contentXHR/test.png
-GET /favicon.ico
-GET /contentXHR/test.success/564
-GET /pageFetch/test.html
-GET /pageFetch/test.png
-GET /favicon.ico
-GET /pageFetch/test.png
-GET /pageFetchNoCors/test.html
-GET /pageFetchNoCors/test.png
-GET /favicon.ico
-GET /pageFetchNoCors/test.png
-GET /pageFetchNoCors/test.success/0
-GET /pageXHR/test.html
-GET /pageXHR/test.png
-GET /pageXHR/test.png
-GET /favicon.ico
-```
-</details>
+* All succeeded requests hit the cache, including downloads API.
+* Page requests failed.
+
+### Firefox 78.15.0esr
+
+| Case                      | Hit the server | Success | File size |
+| ------------------------- | -------------- | ------- | --------- |
+| backgroundFetch           | 1              | true    | /564      |
+| backgroundFetchNoCors     | 1              | true    | /564      |
+| backgroundXHR             | 1              | true    | /564      |
+| backgroundDownload        | 1              | true    | /564      |
+| backgroundDownloadWithRef | 1              | true    | /564      |
+| contentFetch              | 1              | true    | /564      |
+| contentFetchNoCors        | 1              | true    | /564      |
+| contentXHR                | 1              | true    | /564      |
+| pageFetch                 | 2              | false   |           |
+| pageFetchNoCors           | 2              | true    | /0        |
+| pageXHR                   | 2              | false   |           |
 
 * Only page requests failed.
-* All succeeded requests hit the cache.
+* All succeeded requests hit the cache, including downloads API
 
-### Chrome 88.0.4324.182
+### Chrome 95.0.4638.54
 
-<details>
-
-```
-GET /backgroundFetch/test.html
-GET /backgroundFetch/test.png
-GET /favicon.ico
-GET /backgroundFetch/test.png
-GET /backgroundFetch/test.success/564
-GET /backgroundFetchNoCors/test.html
-GET /backgroundFetchNoCors/test.png
-GET /backgroundFetchNoCors/test.png
-GET /backgroundFetchNoCors/test.success/564
-GET /backgroundXHR/test.html
-GET /backgroundXHR/test.png
-GET /backgroundXHR/test.png
-GET /backgroundXHR/test.success/564
-GET /contentFetch/test.html
-GET /contentFetch/test.png
-GET /contentFetchNoCors/test.html
-GET /contentFetchNoCors/test.png
-GET /contentFetchNoCors/test.success/0
-GET /contentXHR/test.html
-GET /contentXHR/test.png
-GET /pageFetch/test.html
-GET /pageFetch/test.png
-GET /pageFetchNoCors/test.html
-GET /pageFetchNoCors/test.png
-GET /pageXHR/test.html
-GET /pageXHR/test.png
-```
-</details>
+| Case                      | Hit the server | Success | File size |
+| ------------------------- | -------------- | ------- | --------- |
+| backgroundFetch           | 2              | true    | /564      |
+| backgroundFetchNoCors     | 2              | true    | /564      |
+| backgroundXHR             | 2              | true    | /564      |
+| backgroundDownload        | 2              | true    | /564      |
+| backgroundDownloadWithRef | 1              | false   |           |
+| contentFetch              | 1              | false   |           |
+| contentFetchNoCors        | 1              | true    | /0        |
+| contentXHR                | 1              | false   |           |
+| pageFetch                 | 1              | false   |           |
+| pageFetchNoCors           | 1              | false   |           |
+| pageXHR                   | 1              | false   |           |
 
 * Only background requests succeeded.
 * Content requests failed and no-cors fetch got an opaque response.
 * No requests hit the cache.
+* Chrome doesn't support setting referrer in downloads API.
 
-### Chrome 83.0.4103.0
+### Chrome 83.0.4103.116
 
-<details>
-
-```
-GET /backgroundFetch/test.html
-GET /backgroundFetch/test.png
-GET /favicon.ico
-GET /backgroundFetch/test.success/564
-GET /backgroundFetchNoCors/test.html
-GET /backgroundFetchNoCors/test.png
-GET /backgroundFetchNoCors/test.success/564
-GET /backgroundXHR/test.html
-GET /backgroundXHR/test.png
-GET /backgroundXHR/test.success/564
-GET /contentFetch/test.html
-GET /contentFetch/test.png
-GET /contentFetch/test.success/564
-GET /contentFetchNoCors/test.html
-GET /contentFetchNoCors/test.png
-GET /contentFetchNoCors/test.success/0
-GET /contentXHR/test.html
-GET /contentXHR/test.png
-GET /contentXHR/test.success/564
-GET /pageFetch/test.html
-GET /pageFetch/test.png
-GET /pageFetchNoCors/test.html
-GET /pageFetchNoCors/test.png
-GET /pageXHR/test.html
-GET /pageXHR/test.png
-```
-</details>
+| Case                      | Hit the server | Success | File size |
+| ------------------------- | -------------- | ------- | --------- |
+| backgroundFetch           | 1              | true    | /564      |
+| backgroundFetchNoCors     | 1              | true    | /564      |
+| backgroundXHR             | 1              | true    | /564      |
+| backgroundDownload        | 2              | true    | /564      |
+| backgroundDownloadWithRef | 1              | false   |           |
+| contentFetch              | 1              | true    | /564      |
+| contentFetchNoCors        | 1              | true    | /0        |
+| contentXHR                | 1              | true    | /564      |
+| pageFetch                 | 1              | false   |           |
+| pageFetchNoCors           | 1              | false   |           |
+| pageXHR                   | 1              | false   |           |
 
 * Only page requests failed.
 * Content fetch with no-cors get an opaque response.
-* All succeeeded requests hit the cache.
+* All succeeeded requests hit the cache, except downloads API.

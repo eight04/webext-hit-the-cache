@@ -16,6 +16,7 @@
     "default_title": "Test"
   },
   "permissions": [
-    "<all_urls>"
+    "<all_urls>",
+    "downloads"
   ]
 }

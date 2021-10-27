@@ -10,12 +10,14 @@ async function init() {
     backgroundFetch: (url, tab, referrer) => fetchBlob(url, {referrer}),
     backgroundFetchNoCors: (url, tab, referrer) => fetchBlob(url, {mode: "no-cors", referrer}),
     backgroundXHR: (url, tab, referrer) => xhr(url),
+    backgroundDownload: (url, tab, referrer) => download(url),
+    backgroundDownloadWithRef: (url, tab, referrer) => download(url, referrer),
     contentFetch: (url, tab, referrer) => browser.tabs.sendMessage(tab.id, {method: "fetch", url, referrer}),
     contentFetchNoCors: (url, tab, referrer) => browser.tabs.sendMessage(tab.id, {method: "fetch", url, mode: "no-cors", referrer}),
     contentXHR: (url, tab, referrer) => browser.tabs.sendMessage(tab.id, {method: "xhr", url}),
     pageFetch: (url, tab, referrer) => browser.tabs.sendMessage(tab.id, {method: "fetch", url, page: true, referrer}),
     pageFetchNoCors: (url, tab, referrer) => browser.tabs.sendMessage(tab.id, {method: "fetch", url, page: true, mode: "no-cors", referrer}),
-    pageXHR: (url, tab, referrer) => browser.tabs.sendMessage(tab.id, {method: "xhr", url, page: true}),
+    pageXHR: (url, tab, referrer) => browser.tabs.sendMessage(tab.id, {method: "xhr", url, page: true})
   };
 
   let i = 0;
@@ -29,12 +31,12 @@ async function init() {
     await browserAction();
     try {
       const blobSize = await cases[key](`http://localhost:8081/${key}/test.png`, tab, url);
-      // console.log(blob.size);
       await fetch(`http://localhost:8081/${key}/test.success/${blobSize}`);
     } catch (err) {
       console.log(err);
+    } finally {
+      await browser.tabs.remove(tab.id);
     }
-    // await browser.tabs.remove(tab.id);
     i++;
   }
 }
@@ -60,4 +62,45 @@ function browserAction() {
     // });
   // });
   return Promise.resolve();
+}
+
+async function download(url, referrer) {
+  const options = {
+    url,
+    filename: 'test.png'
+  };
+  if (referrer) {
+    options.headers = [
+      {
+        name: 'Referer',
+        value: referrer
+      }
+    ];
+  }
+  const id = await browser.downloads.download(options);
+  await downloadComplete(id);
+  const [item] = await browser.downloads.search({id});
+  return item.fileSize;
+}
+
+function downloadComplete(id) {
+  return new Promise((resolve, reject) => {
+    browser.downloads.onChanged.addListener(delta => {
+      if (delta.id !== id) return;
+      
+      if (delta.error?.current) {
+        reject(new Error(`download failed: ${delta.error?.current}`));
+        return;
+      }
+      
+      switch (delta.state?.current) {
+        case 'interrupted':
+          reject(new Error('download is interrupted'));
+          return;
+        case 'complete':
+          resolve();
+          return;
+      }
+    });
+  });
 }
