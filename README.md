@@ -28,6 +28,26 @@ Run the test
 Result
 -------
 
+### Firefox 123.0 (no partition)
+
+| Case                      | Hit the server | Success | File size |
+| ------------------------- | -------------- | ------- | --------- |
+| backgroundFetch           | 2              | true    | /564      |
+| backgroundFetchNoCors     | 2              | true    | /564      |
+| backgroundXHR             | 2              | true    | /564      |
+| backgroundDownload        | 1              | true    | /564      |
+| backgroundDownloadWithRef | 1              | true    | /564      |
+| contentFetch              | 1              | true    | /564      |
+| contentFetchNoCors        | 1              | true    | /564      |
+| contentXHR                | 1              | true    | /564      |
+| pageFetch                 | 2              | false   |           |
+| pageFetchNoCors           | 2              | true    | /0        |
+| pageXHR                   | 2              | false   |           |
+
+* Only page requests failed.
+* Requests from content page and downloads API hit the cache.
+* **Background reqeusts don't hit the cache anymore*.*
+
 ### Firefox Developer Edition 94.0b9:
 
 | Case                      | Hit the server | Success | File size |
