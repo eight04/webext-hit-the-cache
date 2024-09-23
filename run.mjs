@@ -73,8 +73,10 @@ if (options.target === 'chromium-no-partition') {
 
 if (options.target === "firefox-desktop") {
   options.firefox = process.argv[3];
-} else {
+} else if (options.target === "chromium") {
   options.chromiumBinary = process.argv[3];
+} else {
+  throw new Error(`Unknown target: ${options.target}`);
 }
 
 const runner = await webext.cmd.run(options, {
