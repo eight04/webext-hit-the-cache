@@ -28,6 +28,59 @@ Run the test
 Result
 -------
 
+### Microsoft Edge 139.0.3405.119 
+
+| Case                      | Hit the server | Success | File size |
+| ------------------------- | -------------- | ------- | --------- |
+| backgroundFetch           | 1              | true    | /564      |
+| backgroundFetchNoCors     | 1              | true    | /564      |
+| backgroundXHR             | 1              | true    | /564      |
+| backgroundDownload        | 2              | true    | /564      |
+| backgroundDownloadWithRef | 1              | false   |           |
+| contentFetch              | 1              | false   |           |
+| contentFetchNoCors        | 1              | true    | /0        |
+| contentXHR                | 1              | false   |           |
+| pageFetch                 | 1              | false   |           |
+| pageFetchNoCors           | 1              | false   |           |
+| pageXHR                   | 1              | false   |           |
+
+* All background requests succeeded.
+
+### Firefox 144.0a1 (no partition)
+
+| Case                      | Hit the server | Success | File size |
+| ------------------------- | -------------- | ------- | --------- |
+| backgroundFetch           | 2              | true    | /564      |
+| backgroundFetchNoCors     | 2              | true    | /564      |
+| backgroundXHR             | 2              | true    | /564      |
+| backgroundDownload        | 1              | true    | /564      |
+| backgroundDownloadWithRef | 1              | true    | /564      |
+| contentFetch              | 2              | true    | /564      |
+| contentFetchNoCors        | 2              | true    | /564      |
+| contentXHR                | 2              | true    | /564      |
+| pageFetch                 | 2              | false   |           |
+| pageFetchNoCors           | 2              | true    | /0        |
+| pageXHR                   | 2              | false   |           |
+
+* No request hits the cache except downloads API.
+* Firefox removed `privacy.partition.network_state` so now you have no choice.
+
+### Firefox 144.0a1
+
+| Case                      | Hit the server | Success | File size |
+| ------------------------- | -------------- | ------- | --------- |
+| backgroundFetch           | 2              | true    | /564      |
+| backgroundFetchNoCors     | 2              | true    | /564      |
+| backgroundXHR             | 2              | true    | /564      |
+| backgroundDownload        | 1              | true    | /564      |
+| backgroundDownloadWithRef | 1              | true    | /564      |
+| contentFetch              | 2              | true    | /564      |
+| contentFetchNoCors        | 2              | true    | /564      |
+| contentXHR                | 2              | true    | /564      |
+| pageFetch                 | 2              | false   |           |
+| pageFetchNoCors           | 2              | true    | /0        |
+| pageXHR                   | 2              | false   |           |
+
 ### Firefox 123.0 (no partition)
 
 | Case                      | Hit the server | Success | File size |
