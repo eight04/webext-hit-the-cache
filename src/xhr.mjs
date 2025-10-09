@@ -1,11 +1,13 @@
-export function xhr(url, page) {
+/* global content */
+
+export function xhr(args) {
   return new Promise((resolve, reject) => {
-    const XHR = page ? content.XMLHttpRequest : XMLHttpRequest;
+    const XHR = args.page ? content.XMLHttpRequest : XMLHttpRequest;
     const r = new XHR;
     r.addEventListener("load", () => resolve(r.response.size));
-    r.addEventListener("error", () => reject(new Error(`XHR error: ${url}`)));
+    r.addEventListener("error", () => reject(new Error(`XHR error: ${args.url}`)));
     r.responseType = "blob";
-    r.open("GET", url);
+    r.open("GET", args.url);
     r.send();
   });
 }

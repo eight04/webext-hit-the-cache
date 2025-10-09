@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import {xhr, fetchBlob} from "./xhr.mjs";
+import { xhr, fetchBlob } from "./xhr.mjs";
 
 init();
 
@@ -7,17 +7,79 @@ async function init() {
   await browserAction();
 
   const cases = {
-    backgroundFetch: (url, tab, referrer) => fetchBlob(url, {referrer}),
-    backgroundFetchNoCors: (url, tab, referrer) => fetchBlob(url, {mode: "no-cors", referrer}),
-    backgroundXHR: (url, tab, referrer) => xhr(url),
+    backgroundFetch: (url, tab, referrer) => fetchBlob(url, { referrer }),
+    backgroundFetchNoCors: (url, tab, referrer) =>
+      fetchBlob(url, { mode: "no-cors", referrer }),
+    backgroundXHR: (url, tab, referrer) => xhr({url}),
     backgroundDownload: (url, tab, referrer) => download(url),
     backgroundDownloadWithRef: (url, tab, referrer) => download(url, referrer),
-    contentFetch: (url, tab, referrer) => browser.tabs.sendMessage(tab.id, {method: "fetch", url, referrer}),
-    contentFetchNoCors: (url, tab, referrer) => browser.tabs.sendMessage(tab.id, {method: "fetch", url, mode: "no-cors", referrer}),
-    contentXHR: (url, tab, referrer) => browser.tabs.sendMessage(tab.id, {method: "xhr", url}),
-    pageFetch: (url, tab, referrer) => browser.tabs.sendMessage(tab.id, {method: "fetch", url, page: true, referrer}),
-    pageFetchNoCors: (url, tab, referrer) => browser.tabs.sendMessage(tab.id, {method: "fetch", url, page: true, mode: "no-cors", referrer}),
-    pageXHR: (url, tab, referrer) => browser.tabs.sendMessage(tab.id, {method: "xhr", url, page: true})
+    contentFetch: (url, tab, referrer) =>
+      browser.tabs.sendMessage(tab.id, { method: "fetch", url, referrer }),
+    contentFetchNoCors: (url, tab, referrer) =>
+      browser.tabs.sendMessage(tab.id, {
+        method: "fetch",
+        url,
+        mode: "no-cors",
+        referrer,
+      }),
+    contentXHR: (url, tab, referrer) =>
+      browser.tabs.sendMessage(tab.id, { method: "xhr", url }),
+    pageFetch: (url, tab, referrer) =>
+      browser.tabs.sendMessage(tab.id, {
+        method: "fetch",
+        url,
+        page: true,
+        referrer,
+      }),
+    pageFetchNoCors: (url, tab, referrer) =>
+      browser.tabs.sendMessage(tab.id, {
+        method: "fetch",
+        url,
+        page: true,
+        mode: "no-cors",
+        referrer,
+      }),
+    pageXHR: (url, tab, referrer) =>
+      browser.tabs.sendMessage(tab.id, { method: "xhr", url, page: true }),
+    pageEvalFetch: (url, tab, referrer) =>
+      browser.tabs.sendMessage(tab.id, {
+        method: "fetch",
+        url,
+        page: true,
+        referrer,
+        eval: true,
+      }),
+    pageEvalFetchNoCors: (url, tab, referrer) =>
+      browser.tabs.sendMessage(tab.id, {
+        method: "fetch",
+        url,
+        page: true,
+        mode: "no-cors",
+        referrer,
+        eval: true,
+      }),
+    pageEvalXHR: (url, tab, referrer) =>
+      browser.tabs.sendMessage(tab.id, {
+        method: "xhr",
+        url,
+        page: true,
+        eval: true,
+      }),
+    contentImg: async (url, tab, referrer) => {
+      const nxo = new NetworkCollector();
+      try {
+        await browser.tabs.sendMessage(tab.id, {
+          method: "img",
+          url,
+          referrer
+        });
+        const records = nxo.getRecords();
+        return records[records.length - 1].blob.size;
+      } finally {
+        console.log(nxo.getRecords());
+        nxo.destroy();
+      }
+    }
   };
 
   let i = 0;
@@ -25,12 +87,16 @@ async function init() {
     console.log(i, key);
     const url = `http://localhost:8080/${key}/test.html`;
     const tab = await browser.tabs.create({
-      url
+      url,
     });
     await loadTab(tab);
     await browserAction();
     try {
-      const blobSize = await cases[key](`http://localhost:8081/${key}/test.png`, tab, url);
+      const blobSize = await cases[key](
+        `http://localhost:8081/${key}/test.png`,
+        tab,
+        url,
+      );
       await fetch(`http://localhost:8081/${key}/test.success/${blobSize}`);
     } catch (err) {
       console.log(err);
@@ -42,24 +108,24 @@ async function init() {
 }
 
 function loadTab(tab) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     browser.runtime.onMessage.addListener(function listener(message, sender) {
       if (message.method === "pageLoad" && sender.tab.id === tab.id) {
         browser.runtime.onMessage.removeListener(listener);
         resolve();
       }
     });
-    
+
     // browser.tabs.sendMessage(tab.id, {method: "checkPageLoad"});
   });
 }
 
 function browserAction() {
   // return new Promise(resolve => {
-    // browser.browserAction.onClicked.addListener(function listener() {
-      // resolve();
-      // browser.browserAction.onClicked.removeListener(listener);
-    // });
+  // browser.browserAction.onClicked.addListener(function listener() {
+  // resolve();
+  // browser.browserAction.onClicked.removeListener(listener);
+  // });
   // });
   return Promise.resolve();
 }
@@ -67,40 +133,78 @@ function browserAction() {
 async function download(url, referrer) {
   const options = {
     url,
-    filename: 'test.png'
+    filename: "test.png",
   };
   if (referrer) {
     options.headers = [
       {
-        name: 'Referer',
-        value: referrer
-      }
+        name: "Referer",
+        value: referrer,
+      },
     ];
   }
   const id = await browser.downloads.download(options);
   await downloadComplete(id);
-  const [item] = await browser.downloads.search({id});
+  const [item] = await browser.downloads.search({ id });
   return item.fileSize;
 }
 
 function downloadComplete(id) {
   return new Promise((resolve, reject) => {
-    browser.downloads.onChanged.addListener(delta => {
+    browser.downloads.onChanged.addListener((delta) => {
       if (delta.id !== id) return;
-      
+
       if (delta.error?.current) {
         reject(new Error(`download failed: ${delta.error?.current}`));
         return;
       }
-      
+
       switch (delta.state?.current) {
-        case 'interrupted':
-          reject(new Error('download is interrupted'));
+        case "interrupted":
+          reject(new Error("download is interrupted"));
           return;
-        case 'complete':
+        case "complete":
           resolve();
           return;
       }
     });
   });
+}
+
+class NetworkCollector {
+  constructor() {
+    this.records = [];
+    this.listener = this.listener.bind(this);
+    browser.webRequest.onHeadersReceived.addListener(
+      this.listener,
+      { urls: ["<all_urls>"], types: ["image"] },
+      ["blocking"]
+    );
+  }
+
+  listener(details) {
+    this.records.push(details);
+
+    const filter = browser.webRequest.filterResponseData(details.requestId);
+    details.blob = null;
+    details.datas = [];
+
+    filter.ondata = (event) => {
+      details.datas.push(event.data);
+      filter.write(event.data);
+    }
+
+    filter.onstop = (event) => {
+      details.blob = new Blob(details.datas);
+      filter.close();
+    };
+  }
+
+  getRecords() {
+    return this.records;
+  }
+
+  destroy() {
+    browser.webRequest.onCompleted.removeListener(this.listener);
+  }
 }

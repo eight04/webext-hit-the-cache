@@ -17,6 +17,8 @@
   },
   "permissions": [
     "<all_urls>",
-    "downloads"
+    "downloads",
+    "webRequest",
+    "webRequestBlocking"
   ]
 }
