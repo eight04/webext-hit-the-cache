@@ -65,6 +65,21 @@ async function init() {
         page: true,
         eval: true,
       }),
+    contentImg: async (url, tab, referrer) => {
+      const nxo = new NetworkCollector();
+      try {
+        await browser.tabs.sendMessage(tab.id, {
+          method: "img",
+          url,
+          referrer
+        });
+        const records = nxo.getRecords();
+        return records[records.length - 1].blob.size;
+      } finally {
+        console.log(nxo.getRecords());
+        nxo.destroy();
+      }
+    }
   };
 
   let i = 0;
@@ -154,4 +169,42 @@ function downloadComplete(id) {
       }
     });
   });
+}
+
+class NetworkCollector {
+  constructor() {
+    this.records = [];
+    this.listener = this.listener.bind(this);
+    browser.webRequest.onHeadersReceived.addListener(
+      this.listener,
+      { urls: ["<all_urls>"], types: ["image"] },
+      ["blocking"]
+    );
+  }
+
+  listener(details) {
+    this.records.push(details);
+
+    const filter = browser.webRequest.filterResponseData(details.requestId);
+    details.blob = null;
+    details.datas = [];
+
+    filter.ondata = (event) => {
+      details.datas.push(event.data);
+      filter.write(event.data);
+    }
+
+    filter.onstop = (event) => {
+      details.blob = new Blob(details.datas);
+      filter.close();
+    };
+  }
+
+  getRecords() {
+    return this.records;
+  }
+
+  destroy() {
+    browser.webRequest.onCompleted.removeListener(this.listener);
+  }
 }

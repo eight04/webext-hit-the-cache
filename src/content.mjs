@@ -26,6 +26,15 @@ const METHODS = {
     if (document.readyState === "complete") {
       browser.runtime.sendMessage({method: "pageLoad"});
     }
+  },
+  img({url}) {
+    return new Promise((resolve, reject) => {
+      const i = new Image;
+      i.src = url + "#" + Math.random();
+      i.onload = () => resolve(i.naturalWidth);
+      i.onerror = () => reject(new Error(`Image load error: ${url}`));
+      document.body.appendChild(i);
+    } );
   }
 }
 
