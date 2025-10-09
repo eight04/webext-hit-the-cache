@@ -28,7 +28,54 @@ Run the test
 Result
 -------
 
-### Microsoft Edge 139.0.3405.119 
+### Edge 141.0.3537.57 no partition
+
+| Case                      | Hit the server | Success | File size |
+| ------------------------- | -------------- | ------- | --------- |
+| backgroundFetch           | 1              | true    | /564      |
+| backgroundFetchNoCors     | 1              | true    | /564      |
+| backgroundXHR             | 1              | true    | /564      |
+| backgroundDownload        | 2              | true    | /564      |
+| backgroundDownloadWithRef | 1              | false   |           |
+| contentFetch              | 1              | false   |           |
+| contentFetchNoCors        | 1              | true    | /0        |
+| contentXHR                | 1              | false   |           |
+| pageFetch                 | 1              | false   |           |
+| pageFetchNoCors           | 1              | false   |           |
+| pageXHR                   | 1              | false   |           |
+| pageEvalFetch             | 1              | false   |           |
+| pageEvalFetchNoCors       | 1              | true    | /0        |
+| pageEvalXHR               | 1              | false   |           |
+| contentImg                | 1              | false   |           |
+
+* All background requests succeeded. All hit the cache except downloads API.
+* Background download doesn't support setting referrer.
+* Content image request failed. Chrome doesn't trigger webrequest events for cached data. https://developer.chrome.com/docs/extensions/reference/api/webRequest#caching
+
+### Firefox Nightly 145.0a1
+
+| Case                      | Hit the server | Success | File size |
+| ------------------------- | -------------- | ------- | --------- |
+| backgroundFetch           | 2              | true    | /564      |
+| backgroundFetchNoCors     | 2              | true    | /564      |
+| backgroundXHR             | 2              | true    | /564      |
+| backgroundDownload        | 1              | true    | /564      |
+| backgroundDownloadWithRef | 1              | true    | /564      |
+| contentFetch              | 2              | true    | /564      |
+| contentFetchNoCors        | 2              | true    | /564      |
+| contentXHR                | 2              | true    | /564      |
+| pageFetch                 | 2              | false   |           |
+| pageFetchNoCors           | 2              | true    | /0        |
+| pageXHR                   | 2              | false   |           |
+| pageEvalFetch             | 2              | false   |           |
+| pageEvalFetchNoCors       | 2              | true    | /0        |
+| pageEvalXHR               | 2              | false   |           |
+| contentImg                | 1              | true    | /564      |
+
+* Only backgroundDownload and contentImg hit the cache.
+* NOTE: We add a random hash to the URL otherwise Firefox won't trigger webrequest events.
+
+### Microsoft Edge 139.0.3405.119 no partition
 
 | Case                      | Hit the server | Success | File size |
 | ------------------------- | -------------- | ------- | --------- |
